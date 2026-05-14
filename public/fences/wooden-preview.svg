@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#5C3317" rx="12"/>
+  <rect x="20" y="60" width="360" height="180" fill="#8B4513" rx="4"/>
+  <!-- Horizontal planks -->
+  <line x1="20" y1="90" x2="380" y2="90" stroke="#6B3410" stroke-width="2"/>
+  <line x1="20" y1="120" x2="380" y2="120" stroke="#6B3410" stroke-width="2"/>
+  <line x1="20" y1="150" x2="380" y2="150" stroke="#6B3410" stroke-width="2"/>
+  <line x1="20" y1="180" x2="380" y2="180" stroke="#6B3410" stroke-width="2"/>
+  <line x1="20" y1="210" x2="380" y2="210" stroke="#6B3410" stroke-width="2"/>
+  <!-- Posts -->
+  <rect x="20" y="50" width="12" height="200" fill="#6B3410"/>
+  <rect x="190" y="50" width="12" height="200" fill="#6B3410"/>
+  <rect x="368" y="50" width="12" height="200" fill="#6B3410"/>
+  <text x="200" y="30" text-anchor="middle" fill="#FFE4C4" font-family="Inter, sans-serif" font-size="18" font-weight="600">Drvena ograda</text>
+</svg>
