@@ -1,24 +1,18 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 
-const messages = [
-  "Analiziramo prostor.",
-  "Postavljamo stubove.",
-  "Renderujemo materijal.",
-  "Završavamo prikaz.",
-];
-
 export default function LoadingState() {
-  const [messageIndex, setMessageIndex] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
   const progressRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const startTime = Date.now();
     const interval = setInterval(() => {
-      setMessageIndex((prev) => (prev + 1) % messages.length);
-    }, 2500);
+      setElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -29,28 +23,41 @@ export default function LoadingState() {
       progressRef.current,
       { width: "0%" },
       {
-        width: "95%",
-        duration: 25,
-        ease: "power1.out",
+        width: "98%",
+        duration: 40,
+        ease: "power1.inOut",
       }
     );
   }, []);
+
+  let currentMessage = "Analiziramo fotografiju...";
+  if (elapsed >= 40) {
+    currentMessage = "Gotovo.";
+  } else if (elapsed >= 35) {
+    currentMessage = "Završavamo...";
+  } else if (elapsed >= 15) {
+    currentMessage = "Generišemo prikaz ograde...";
+  }
+
+  const formattedElapsed = `0:${elapsed.toString().padStart(2, "0")}`;
 
   return (
     <div className="w-full min-h-[70vh] flex flex-col items-center justify-center">
       {/* Rotating word */}
       <div className="text-center min-h-[80px] flex items-center justify-center">
-        <motion.p
-          key={messageIndex}
-          className="display-m"
-          style={{ fontStyle: "italic", fontWeight: 300, fontVariationSettings: '"opsz" 72' }}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }}
-        >
-          {messages[messageIndex]}
-        </motion.p>
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={currentMessage}
+            className="display-m"
+            style={{ fontStyle: "italic", fontWeight: 300, fontVariationSettings: '"opsz" 72' }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }}
+          >
+            {currentMessage}
+          </motion.p>
+        </AnimatePresence>
       </div>
 
       {/* Thin progress bar */}
@@ -61,6 +68,9 @@ export default function LoadingState() {
             className="h-full bg-cognac absolute top-0 left-0"
           />
         </div>
+        <p className="caption mt-4 text-center" style={{ textTransform: "none", letterSpacing: "normal", fontSize: "0.75rem" }}>
+          {formattedElapsed} / ~0:40
+        </p>
       </div>
     </div>
   );

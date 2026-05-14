@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       images,
-      labels: ["Široki prikaz", "Detalj panela", "Ugaoni prikaz"],
+      labels: ["Široki prikaz", "Ugaoni prikaz"],
     });
   } catch (error: unknown) {
     console.error("Generation error:", error);

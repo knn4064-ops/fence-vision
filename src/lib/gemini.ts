@@ -16,8 +16,6 @@ function buildPrompts(fence: FenceType, points: PolylinePoint[]): string[] {
   return [
     // Wide shot
     `${basePrompt} Show the full scene with the fence integrated naturally as a wide establishing shot.`,
-    // Detail close-up
-    `${basePrompt} Close-up detail view focusing on a section of the fence panel showing texture and material quality.`,
     // Angled view
     `${basePrompt} Slightly angled perspective view showing the fence from a 30-degree side angle to emphasize depth and the post structure.`,
   ];
@@ -38,48 +36,73 @@ export async function generateFenceImages(
   const prompts = buildPrompts(fence, points);
   const results: string[] = [];
 
-  for (const prompt of prompts) {
-    try {
-      const response = await ai.models.generateContent({
-        model: GEMINI_MODEL,
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                inlineData: {
-                  mimeType: imageMimeType,
-                  data: imageBase64,
-                },
-              },
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-        config: {
-          responseModalities: ["image", "text"],
-        },
-      });
+  for (let i = 0; i < prompts.length; i++) {
+    const prompt = prompts[i];
+    let retryCount = 0;
+    const maxRetries = 1;
+    let success = false;
 
-      // Extract image from response
-      const parts = response.candidates?.[0]?.content?.parts;
-      if (parts) {
-        for (const part of parts) {
-          if (part.inlineData?.data) {
-            results.push(part.inlineData.data);
-            break;
+    while (!success && retryCount <= maxRetries) {
+      try {
+        const response = await ai.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: imageMimeType,
+                    data: imageBase64,
+                  },
+                },
+                {
+                  text: prompt,
+                },
+              ],
+            },
+          ],
+          config: {
+            responseModalities: ["image", "text"],
+          },
+        });
+
+        // Extract image from response
+        const parts = response.candidates?.[0]?.content?.parts;
+        let imageFound = false;
+        if (parts) {
+          for (const part of parts) {
+            if (part.inlineData?.data) {
+              results.push(part.inlineData.data);
+              imageFound = true;
+              break;
+            }
           }
         }
-      }
 
-      if (results.length < prompts.indexOf(prompt) + 1) {
-        throw new Error("No image returned from Gemini API for this prompt variant.");
+        if (!imageFound) {
+          throw new Error("No image returned from Gemini API for this prompt variant.");
+        }
+        
+        success = true;
+
+      } catch (error: any) {
+        console.error(`Gemini API error (attempt ${retryCount + 1}):`, error);
+        
+        const errorMessage = error?.message || String(error);
+        if ((errorMessage.includes("429") || errorMessage.toLowerCase().includes("rate")) && retryCount < maxRetries) {
+          console.log("Rate limit hit, waiting 60 seconds before retry...");
+          await new Promise(resolve => setTimeout(resolve, 60000));
+          retryCount++;
+        } else {
+          throw error;
+        }
       }
-    } catch (error) {
-      console.error("Gemini API error:", error);
-      throw error;
+    }
+
+    if (i === 0) {
+      // 35 second delay between requests to stay within free tier limits
+      await new Promise(resolve => setTimeout(resolve, 35000));
     }
   }
 
