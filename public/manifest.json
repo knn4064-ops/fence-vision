@@ -4,8 +4,8 @@
   "description": "AI vizualizacija ograda — učitajte fotografiju i dobijte fotorealistične prikaze ograde",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0f1c",
-  "theme_color": "#1e40af",
+  "background_color": "#F5F1EA",
+  "theme_color": "#F5F1EA",
   "orientation": "portrait-primary",
   "icons": [
     {

@@ -1,10 +1,29 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+import { LenisProvider } from "@/components/LenisProvider";
+import { CustomCursor } from "@/components/CustomCursor";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "500"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const fraunces = localFont({
+  src: [
+    {
+      path: "../fonts/Fraunces-VariableFont.ttf",
+      style: "normal",
+    },
+    {
+      path: "../fonts/Fraunces-Italic-VariableFont.ttf",
+      style: "italic",
+    },
+  ],
+  variable: "--font-fraunces",
   display: "swap",
 });
 
@@ -12,7 +31,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#1e40af",
+  themeColor: "#F5F1EA",
 };
 
 export const metadata: Metadata = {
@@ -22,7 +41,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "FenceVision",
   },
   icons: {
@@ -43,15 +62,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="sr" className={`${inter.variable} h-full`}>
+    <html lang="sr" className={`${inter.variable} ${fraunces.variable}`}>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="FenceVision" />
         <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
       </head>
-      <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans antialiased">
-        {children}
+      <body>
+        <LenisProvider>
+          <CustomCursor />
+          {children}
+        </LenisProvider>
       </body>
     </html>
   );

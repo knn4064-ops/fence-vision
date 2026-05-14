@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { PolylinePoint, FenceType } from "@/types";
-import { Undo2, Trash2, CheckCircle2 } from "lucide-react";
 
 interface FenceDrawCanvasProps {
   imageSrc: string;
@@ -20,6 +20,7 @@ export default function FenceDrawCanvas({
   const imgRef = useRef<HTMLImageElement | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [ripple, setRipple] = useState<{ x: number; y: number; key: number } | null>(null);
 
   useEffect(() => {
     const img = new Image();
@@ -47,13 +48,16 @@ export default function FenceDrawCanvas({
     if (!canvas || !img || !canvasSize.width) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvasSize.width, canvasSize.height);
+
     if (points.length === 0) return;
-    // Semi-transparent band
+
+    // Semi-transparent cognac vertical extrusion (architectural projection)
     if (points.length >= 2) {
-      ctx.strokeStyle = fenceType.color + "80";
-      ctx.lineWidth = 24;
+      ctx.strokeStyle = "rgba(139, 111, 71, 0.15)";
+      ctx.lineWidth = 20;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.beginPath();
@@ -62,9 +66,10 @@ export default function FenceDrawCanvas({
         ctx.lineTo(points[i].x * canvasSize.width, points[i].y * canvasSize.height);
       ctx.stroke();
     }
-    // Main line
-    ctx.strokeStyle = fenceType.color;
-    ctx.lineWidth = 3;
+
+    // Main line — thin 1.5px in ink
+    ctx.strokeStyle = "#1C1917";
+    ctx.lineWidth = 1.5;
     ctx.setLineDash([]);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -73,17 +78,17 @@ export default function FenceDrawCanvas({
     for (let i = 1; i < points.length; i++)
       ctx.lineTo(points[i].x * canvasSize.width, points[i].y * canvasSize.height);
     ctx.stroke();
-    // Points
-    points.forEach((point, index) => {
-      const px = point.x * canvasSize.width, py = point.y * canvasSize.height;
-      ctx.beginPath(); ctx.arc(px, py, 8, 0, Math.PI * 2);
-      ctx.fillStyle = fenceType.color; ctx.fill();
-      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
-      ctx.fillStyle = "#ffffff"; ctx.font = "bold 10px Inter, sans-serif";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText((index + 1).toString(), px, py);
+
+    // Points — small cognac filled circles
+    points.forEach((point) => {
+      const px = point.x * canvasSize.width;
+      const py = point.y * canvasSize.height;
+      ctx.beginPath();
+      ctx.arc(px, py, 4, 0, Math.PI * 2);
+      ctx.fillStyle = "#8B6F47";
+      ctx.fill();
     });
-  }, [points, canvasSize, fenceType]);
+  }, [points, canvasSize]);
 
   useEffect(() => { draw(); }, [draw]);
 
@@ -94,6 +99,8 @@ export default function FenceDrawCanvas({
     const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     const y = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
     onPointsChange([...points, { x, y }]);
+    // Trigger ripple
+    setRipple({ x: clientX - rect.left, y: clientY - rect.top, key: Date.now() });
   }, [points, onPointsChange]);
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -107,36 +114,85 @@ export default function FenceDrawCanvas({
   }, [handleCanvasInteraction]);
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-4">
-      <div className="text-center">
-        <p className="text-sm text-gray-400">Dodirnite na fotografiji gde želite ogradu. Minimalno 2 tačke.</p>
-        <p className="text-xs text-gray-500 mt-1">Tačke: {points.length} / min. 2</p>
-      </div>
-      <div ref={containerRef} className="relative w-full rounded-xl overflow-hidden shadow-xl border border-white/10">
+    <div className="w-full">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="mb-8"
+      >
+        <p className="section-number mb-4">03 — Pozicija ograde</p>
+        <p className="body-m">
+          Označite gde želite ogradu — kliknite tačke duž ivice
+        </p>
+        <p className="caption mt-2" style={{ textTransform: "none", letterSpacing: "normal", fontSize: "0.75rem" }}>
+          Tačke: {points.length} / min. 2
+        </p>
+      </motion.div>
+
+      {/* Canvas container with architectural frame */}
+      <motion.div
+        ref={containerRef}
+        className="relative w-full border border-hairline"
+        initial={{ opacity: 0, scale: 1.05 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] as const }}
+        style={{ margin: "0 auto", maxWidth: "900px" }}
+      >
         {canvasSize.width > 0 && (
-          <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height}
-            onClick={handleClick} onTouchStart={handleTouch}
+          <canvas
+            ref={canvasRef}
+            width={canvasSize.width}
+            height={canvasSize.height}
+            onClick={handleClick}
+            onTouchStart={handleTouch}
             className="w-full h-auto cursor-crosshair touch-none"
-            aria-label="Crtanje linije ograde na fotografiji" role="img" />
+            aria-label="Crtanje linije ograde na fotografiji"
+            role="img"
+          />
         )}
-      </div>
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-2">
-          <button onClick={() => onPointsChange(points.slice(0, -1))} disabled={points.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-sm font-medium hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
-            aria-label="Poništi poslednju tačku">
-            <Undo2 size={16} />Poništi
+        {/* Ripple animation */}
+        {ripple && (
+          <motion.div
+            key={ripple.key}
+            className="absolute pointer-events-none rounded-full border border-cognac"
+            style={{ left: ripple.x - 4, top: ripple.y - 4 }}
+            initial={{ width: 8, height: 8, opacity: 1 }}
+            animate={{ width: 32, height: 32, opacity: 0, x: -12, y: -12 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            aria-hidden="true"
+          />
+        )}
+      </motion.div>
+
+      {/* Tool buttons — minimal outline */}
+      <div className="flex items-center justify-between gap-4 mt-6 max-w-[900px] mx-auto">
+        <div className="flex gap-3">
+          <button
+            onClick={() => onPointsChange(points.slice(0, -1))}
+            disabled={points.length === 0}
+            className="text-link btn-text disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Poništi poslednju tačku"
+          >
+            Poništi
           </button>
-          <button onClick={() => onPointsChange([])} disabled={points.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-sm font-medium hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
-            aria-label="Obriši sve tačke">
-            <Trash2 size={16} />Obriši sve
+          <span className="text-hairline">|</span>
+          <button
+            onClick={() => onPointsChange([])}
+            disabled={points.length === 0}
+            className="text-link btn-text disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Obriši sve tačke"
+          >
+            Obriši sve
           </button>
         </div>
-        <button onClick={onDone} disabled={points.length < 2}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-medium shadow-lg shadow-emerald-500/20 hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none active:scale-[0.98] transition-all duration-200"
-          aria-label="Potvrdite liniju ograde">
-          <CheckCircle2 size={18} />Gotovo
+        <button
+          onClick={onDone}
+          disabled={points.length < 2}
+          className="btn-primary disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Potvrdite liniju ograde"
+        >
+          Gotovo
         </button>
       </div>
     </div>

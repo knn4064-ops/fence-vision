@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useCallback, useRef, useState } from "react";
-import { Upload, Camera, X, ImageIcon } from "lucide-react";
+import { motion } from "framer-motion";
 import { validateImage, fileToBase64 } from "@/lib/utils";
+import { ArrowUpRight, X } from "lucide-react";
 
 interface ImageUploaderProps {
   onImageSelected: (base64: string, file: File) => void;
@@ -23,7 +24,6 @@ export default function ImageUploader({ onImageSelected }: ImageUploaderProps) {
         setError(validation.error || "Nevalidna slika.");
         return;
       }
-
       try {
         const base64 = await fileToBase64(file);
         const dataUrl = `data:${file.type};base64,${base64}`;
@@ -51,9 +51,7 @@ export default function ImageUploader({ onImageSelected }: ImageUploaderProps) {
     setIsDragging(true);
   }, []);
 
-  const handleDragLeave = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+  const handleDragLeave = useCallback(() => setIsDragging(false), []);
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,124 +70,147 @@ export default function ImageUploader({ onImageSelected }: ImageUploaderProps) {
 
   if (preview) {
     return (
-      <div className="relative w-full max-w-lg mx-auto">
-        <div className="relative rounded-2xl overflow-hidden shadow-xl border border-white/10">
-          <img
-            src={preview}
-            alt="Učitana fotografija imanja"
-            className="w-full h-auto object-contain max-h-[60vh]"
-          />
-          <button
-            onClick={clearImage}
-            className="absolute top-3 right-3 p-2 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-red-500/80 transition-all duration-200"
-            aria-label="Ukloni sliku"
+      <div className="w-full">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-start">
+          <div className="md:col-span-5 md:col-start-2">
+            <p className="section-number mb-6">01 — Fotografija</p>
+            <h2 className="display-m mb-4">Vaša fotografija</h2>
+            <p className="body-m mb-8">
+              Fotografija je učitana. Nastavite dalje da odaberete tip ograde.
+            </p>
+            <button
+              onClick={clearImage}
+              className="btn-outline"
+              aria-label="Ukloni sliku"
+            >
+              <X size={16} strokeWidth={1} />
+              Ukloni i ponovo odaberi
+            </button>
+          </div>
+          <motion.div
+            className="md:col-span-5"
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] as const }}
           >
-            <X size={20} />
-          </button>
+            <div className="border border-hairline">
+              <img
+                src={preview}
+                alt="Učitana fotografija imanja"
+                className="w-full h-auto object-contain"
+              />
+            </div>
+          </motion.div>
         </div>
-        <p className="text-center text-sm text-gray-400 mt-3">
-          Slika je učitana. Kliknite &quot;Dalje&quot; za nastavak.
-        </p>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto space-y-4">
-      {/* Drop zone */}
-      <div
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onClick={() => fileInputRef.current?.click()}
-        className={`
-          relative flex flex-col items-center justify-center p-8 md:p-12
-          rounded-2xl border-2 border-dashed cursor-pointer
-          transition-all duration-300 ease-out
-          ${
-            isDragging
-              ? "border-emerald-400 bg-emerald-500/10 scale-[1.02]"
-              : "border-gray-600 bg-white/5 hover:border-blue-400 hover:bg-blue-500/5"
-          }
-        `}
-        role="button"
-        aria-label="Prevucite sliku ili kliknite za učitavanje"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            fileInputRef.current?.click();
-          }
-        }}
-      >
-        <div
-          className={`
-            p-4 rounded-full mb-4 transition-all duration-300
-            ${isDragging ? "bg-emerald-500/20" : "bg-blue-500/10"}
-          `}
+    <div className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-center min-h-[60vh]">
+        {/* Left — text */}
+        <div className="md:col-span-5 md:col-start-2">
+          <motion.p
+            className="section-number mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            01 — Fotografija
+          </motion.p>
+          <motion.h2
+            className="display-l mb-6"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] as const, delay: 0.3 }}
+          >
+            Vaša nova ograda.
+          </motion.h2>
+          <motion.p
+            className="caption"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
+            Renderovanje ograde podržano veštačkom inteligencijom
+          </motion.p>
+        </div>
+
+        {/* Right — upload zone */}
+        <motion.div
+          className="md:col-span-5"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] as const, delay: 0.5 }}
         >
-          <Upload
-            size={40}
-            className={`transition-colors duration-300 ${
-              isDragging ? "text-emerald-400" : "text-blue-400"
-            }`}
-          />
-        </div>
-        <p className="text-lg font-medium text-gray-200 text-center">
-          Prevucite fotografiju ovde
-        </p>
-        <p className="text-sm text-gray-400 mt-1">
-          ili kliknite za odabir iz galerije
-        </p>
-        <p className="text-xs text-gray-500 mt-3">
-          JPG, PNG, WebP • Maksimalno 10MB
-        </p>
+          <div
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onClick={() => fileInputRef.current?.click()}
+            className={`
+              relative flex flex-col items-center justify-center
+              aspect-[4/5] w-full
+              transition-all duration-500 cursor-pointer
+              ${isDragging
+                ? "border-2 border-dashed border-cognac bg-cream/50"
+                : "border border-hairline"
+              }
+            `}
+            role="button"
+            aria-label="Prevucite sliku ili kliknite za učitavanje"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click();
+            }}
+          >
+            <div className="text-center px-8">
+              <p
+                className="display-m mb-6"
+                style={{ fontVariationSettings: '"opsz" 72' }}
+              >
+                Učitajte fotografiju
+              </p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                className="text-link btn-text"
+              >
+                Odaberite fajl
+              </button>
+              <p className="caption mt-6" style={{ textTransform: "none", letterSpacing: "normal", fontSize: "0.75rem" }}>
+                JPG, PNG, WebP — max 10MB
+              </p>
+            </div>
+          </div>
+
+          {/* Camera button — mobile */}
+          <button
+            onClick={() => cameraInputRef.current?.click()}
+            className="btn-outline w-full mt-4 justify-center md:hidden"
+            aria-label="Fotografišite kamerom"
+          >
+            Fotografišite kamerom
+            <ArrowUpRight size={16} strokeWidth={1} />
+          </button>
+
+          {/* Error */}
+          {error && (
+            <div className="mt-4 p-4 border border-cognac/30 bg-cognac/5">
+              <p className="body-m" style={{ color: "#8B6F47" }}>{error}</p>
+            </div>
+          )}
+
+          {/* Hidden inputs */}
+          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp"
+            onChange={handleFileChange} className="hidden" aria-hidden="true" id="file-upload" />
+          <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png,image/webp"
+            capture="environment" onChange={handleFileChange} className="hidden" aria-hidden="true" id="camera-upload" />
+        </motion.div>
       </div>
-
-      {/* Camera button (mobile) */}
-      <button
-        onClick={() => cameraInputRef.current?.click()}
-        className="
-          w-full flex items-center justify-center gap-3 py-4 px-6
-          rounded-xl bg-gradient-to-r from-blue-600 to-blue-700
-          text-white font-medium
-          hover:from-blue-500 hover:to-blue-600
-          active:scale-[0.98] transition-all duration-200
-          shadow-lg shadow-blue-500/20
-        "
-        aria-label="Fotografišite kamerom"
-      >
-        <Camera size={22} />
-        <span>Fotografišite kamerom</span>
-      </button>
-
-      {/* Error message */}
-      {error && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-          <ImageIcon size={18} className="text-red-400 shrink-0" />
-          <p className="text-sm text-red-400">{error}</p>
-        </div>
-      )}
-
-      {/* Hidden inputs */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        onChange={handleFileChange}
-        className="hidden"
-        aria-hidden="true"
-        id="file-upload"
-      />
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        capture="environment"
-        onChange={handleFileChange}
-        className="hidden"
-        aria-hidden="true"
-        id="camera-upload"
-      />
     </div>
   );
 }

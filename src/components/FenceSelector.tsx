@@ -1,95 +1,128 @@
 "use client";
 
 import React from "react";
+import { motion } from "framer-motion";
 import { FenceType } from "@/types";
 import { fenceTypes } from "@/lib/fences";
-import { Check, Ruler, Columns3 } from "lucide-react";
 
 interface FenceSelectorProps {
   selectedFence: FenceType | null;
   onSelect: (fence: FenceType) => void;
 }
 
-export default function FenceSelector({
-  selectedFence,
-  onSelect,
-}: FenceSelectorProps) {
+const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: 0.3 + i * 0.15,
+      duration: 0.8,
+      ease,
+    },
+  }),
+};
+
+export default function FenceSelector({ selectedFence, onSelect }: FenceSelectorProps) {
+  const numbers = ["01", "02", "03"];
+  const heights = ["1.6 metara", "1.8 metara", "2.0 metara"];
+
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {fenceTypes.map((fence) => {
+    <div className="w-full">
+      {/* Section header */}
+      <motion.div
+        className="mb-12 md:mb-20"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+      >
+        <p className="section-number mb-4">02 — Odaberite materijal</p>
+        <h2 className="display-l">Tri filozofije ograde.</h2>
+      </motion.div>
+
+      {/* Asymmetric card layout */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+        {fenceTypes.map((fence, i) => {
           const isSelected = selectedFence?.id === fence.id;
 
+          // Asymmetric positioning: card 1 cols 1-4, card 2 cols 4-9 offset, card 3 cols 9-12
+          const colClasses = [
+            "md:col-span-4 md:col-start-1",
+            "md:col-span-5 md:col-start-5 md:mt-16",
+            "md:col-span-4 md:col-start-9 md:-mt-8",
+          ];
+
           return (
-            <button
+            <motion.button
               key={fence.id}
+              custom={i}
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
               onClick={() => onSelect(fence)}
               className={`
-                group relative flex flex-col rounded-2xl overflow-hidden
-                border-2 transition-all duration-300 ease-out
-                text-left
-                ${
-                  isSelected
-                    ? "border-blue-500 shadow-lg shadow-blue-500/20 scale-[1.02] bg-blue-500/5"
-                    : "border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/8"
-                }
+                ${colClasses[i]}
+                group relative text-left block w-full
+                transition-all duration-300
               `}
               aria-label={`Odaberite ${fence.name}`}
               aria-pressed={isSelected}
+              data-cursor-hover
             >
-              {/* Selected badge */}
-              {isSelected && (
-                <div className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-blue-500 shadow-lg">
-                  <Check size={16} className="text-white" />
-                </div>
-              )}
-
-              {/* Preview image */}
+              {/* Image */}
               <div
-                className="w-full h-40 flex items-center justify-center relative overflow-hidden"
-                style={{ backgroundColor: `${fence.color}20` }}
+                className={`
+                  relative overflow-hidden aspect-[4/5]
+                  border transition-all duration-500
+                  ${isSelected
+                    ? "border-cognac shadow-[inset_0_0_0_1px_#8B6F47]"
+                    : "border-hairline"
+                  }
+                `}
               >
-                <img
+                <motion.img
                   src={fence.previewImage}
                   alt={`${fence.name} pregled`}
-                  className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-full object-cover"
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
                 />
-                <div
-                  className="absolute inset-0 opacity-10"
-                  style={{
-                    background: `linear-gradient(135deg, ${fence.color}40, transparent)`,
-                  }}
-                />
+                {isSelected && (
+                  <motion.div
+                    className="absolute top-4 right-4"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <span className="caption text-cognac" style={{ fontSize: "0.6875rem" }}>
+                      Odabrano
+                    </span>
+                  </motion.div>
+                )}
               </div>
 
               {/* Info */}
-              <div className="p-4 flex-1 flex flex-col gap-2">
-                <h3 className="text-lg font-semibold text-gray-100">
+              <div className="mt-4">
+                <span className="section-number">{numbers[i]}</span>
+                <h3 className="display-m mt-2 relative inline-block">
                   {fence.name}
+                  {/* Underline animation on hover */}
+                  <span
+                    className={`
+                      absolute bottom-0 left-0 h-[1px] bg-cognac
+                      transition-all duration-500 ease-out
+                      ${isSelected ? "w-full" : "w-0 group-hover:w-full"}
+                    `}
+                  />
                 </h3>
-
-                <div className="flex items-center gap-4 text-sm text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <Ruler size={14} className="text-gray-500" />
-                    {fence.height}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Columns3 size={14} className="text-gray-500" />
-                    {fence.postSpacing}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-400 leading-relaxed mt-1">
-                  {fence.styleDescription}
+                <p className="body-m mt-2">{fence.styleDescription}</p>
+                <p className="caption mt-3" style={{ fontSize: "0.75rem" }}>
+                  {heights[i]}
                 </p>
-
-                <div className="mt-auto pt-2">
-                  <span className="text-xs text-gray-500">
-                    Materijal stubova: {fence.postMaterial}
-                  </span>
-                </div>
               </div>
-            </button>
+            </motion.button>
           );
         })}
       </div>

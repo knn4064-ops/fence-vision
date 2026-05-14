@@ -1,14 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
-  <rect width="400" height="300" fill="#374151" rx="12"/>
-  <rect x="20" y="50" width="360" height="200" fill="#9CA3AF" rx="2"/>
-  <!-- Horizontal lines -->
-  <line x1="20" y1="90" x2="380" y2="90" stroke="#8B95A5" stroke-width="1"/>
-  <line x1="20" y1="130" x2="380" y2="130" stroke="#8B95A5" stroke-width="1"/>
-  <line x1="20" y1="170" x2="380" y2="170" stroke="#8B95A5" stroke-width="1"/>
-  <line x1="20" y1="210" x2="380" y2="210" stroke="#8B95A5" stroke-width="1"/>
-  <!-- Posts -->
-  <rect x="18" y="45" width="16" height="210" fill="#6B7280" rx="1"/>
-  <rect x="190" y="45" width="16" height="210" fill="#6B7280" rx="1"/>
-  <rect x="366" y="45" width="16" height="210" fill="#6B7280" rx="1"/>
-  <text x="200" y="30" text-anchor="middle" fill="#E5E7EB" font-family="Inter, sans-serif" font-size="18" font-weight="600">Betonska ograda</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">
+  <rect width="800" height="1000" fill="#DDD8CE"/>
+  <!-- Three subtle horizontal lines -->
+  <line x1="80" y1="340" x2="720" y2="340" stroke="#6B655C" stroke-width="0.75" opacity="0.25"/>
+  <line x1="80" y1="540" x2="720" y2="540" stroke="#6B655C" stroke-width="0.75" opacity="0.25"/>
+  <line x1="80" y1="740" x2="720" y2="740" stroke="#6B655C" stroke-width="0.75" opacity="0.25"/>
+  <!-- Label -->
+  <text x="80" y="950" fill="#6B655C" font-family="serif" font-size="28" font-weight="300" font-style="italic">Beton</text>
 </svg>
